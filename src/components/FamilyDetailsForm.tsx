@@ -23,40 +23,35 @@ const FamilyDetailsForm = () => {
     validationSchema: Yup.object({
       father_occupation: Yup.string().when('father_working', {
         is: true,
-        then: (schema) => schema.required('Father\'s occupation is required'),
+        then: (schema) => schema.required("Father occupation is required"),
       }),
       mother_occupation: Yup.string().when('mother_working', {
         is: true,
-        then: (schema) => schema.required('Mother\'s occupation is required'),
+        then: (schema) => schema.required("Mother occupation is required"),
       }),
       current_year: Yup.string().required('Current year is required'),
     }),
     
     onSubmit: async (values) => {
       try {
-        // Validate father's occupation if working
         if (values.father_working && !values.father_occupation?.trim()) {
-          toast.error('Father\'s occupation is required when working');
+          toast.error("Father&apos;s occupation is required when working");
           return;
         }
 
-        // Validate mother's occupation if working
         if (values.mother_working && !values.mother_occupation?.trim()) {
-          toast.error('Mother\'s occupation is required when working');
+          toast.error("Mother's occupation is required when working");
           return;
         }
 
         const formData = new FormData();
-        
-        // Add all form values to FormData
         Object.keys(values).forEach((key) => {
           const value = values[key as keyof typeof values];
           if (value !== undefined && value !== null) {
             formData.append(key, value.toString());
           }
         });
-        
-        // Add marksheet file if present and not first year
+
         if (marksheetFile && values.current_year !== '1') {
           formData.append('marksheet', marksheetFile);
         } else if (values.current_year !== '1' && !marksheetFile) {
@@ -77,16 +72,20 @@ const FamilyDetailsForm = () => {
         }
 
         toast.success('Application submitted successfully!');
-        
-        // Store the application ID in localStorage for reference
+
         if (data.applicationId) {
           localStorage.setItem('applicationId', data.applicationId.toString());
         }
         
         router.push('/success');
-      } catch (error: any) {
-        console.error('Error submitting application:', error);
-        toast.error(error.message || 'Failed to submit application. Please try again.');
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          console.error('Error submitting application:', error);
+          toast.error(error.message || 'Failed to submit application. Please try again.');
+        } else {
+          console.error('Unknown error:', error);
+          toast.error('An unknown error occurred. Please try again.');
+        }
       }
     },
   });
@@ -94,15 +93,13 @@ const FamilyDetailsForm = () => {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Validate file type
       const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
       if (!allowedTypes.includes(file.type)) {
         toast.error('Please upload a PDF or image file (JPEG/PNG)');
         return;
       }
 
-      // Validate file size (max 5MB)
-      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+      const maxSize = 5 * 1024 * 1024;
       if (file.size > maxSize) {
         toast.error('File size should be less than 5MB');
         return;
@@ -130,9 +127,9 @@ const FamilyDetailsForm = () => {
         </div>
       </div>
 
-      {/* Father's Details */}
+      {/* Father Details */}
       <div className="space-y-6">
-        <h3 className="text-lg font-medium">Father's Details</h3>
+        <h3 className="text-lg font-medium">Father&apos;s Details</h3>
         <div className="space-y-4">
           <label className="flex items-center space-x-3">
             <input
@@ -159,7 +156,7 @@ const FamilyDetailsForm = () => {
               {formik.values.father_working && (
                 <div>
                   <label htmlFor="father_occupation" className="block text-sm font-medium mb-2">
-                    Father's Occupation
+                    Father&apos;s Occupation
                   </label>
                   <input
                     id="father_occupation"
@@ -179,7 +176,7 @@ const FamilyDetailsForm = () => {
 
       {/* Mother's Details */}
       <div className="space-y-6">
-        <h3 className="text-lg font-medium">Mother's Details</h3>
+        <h3 className="text-lg font-medium">Mother&apos;s Details</h3>
         <div className="space-y-4">
           <label className="flex items-center space-x-3">
             <input
@@ -206,7 +203,7 @@ const FamilyDetailsForm = () => {
               {formik.values.mother_working && (
                 <div>
                   <label htmlFor="mother_occupation" className="block text-sm font-medium mb-2">
-                    Mother's Occupation
+                    Mother&apos;s Occupation
                   </label>
                   <input
                     id="mother_occupation"
