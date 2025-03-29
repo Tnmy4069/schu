@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { useEffect, useState, useCallback } from 'react';
 
+
+
 const PersonalDetailsForm = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
@@ -96,7 +98,8 @@ const PersonalDetailsForm = () => {
         }
 
         toast.success('Personal details saved successfully!');
-        router.push('/family-details');
+        router.replace('/family-details');
+
       } catch (error: unknown) {
         console.error('Error saving personal details:', error);
         toast.error(error instanceof Error ? error.message : 'Failed to save personal details. Please try again.');
@@ -116,31 +119,34 @@ const PersonalDetailsForm = () => {
 
         const { aadhar, cap } = JSON.parse(storedData);
 
-        formik.setValues((prevValues) => ({
-          ...prevValues,
+        const newValues = {
           name: aadhar.name || '',
           dob: aadhar.dob?.split('T')[0] || '',
           gender: aadhar.gender?.toLowerCase() || '',
           address: aadhar.address || '',
-          
+
           annual_income: cap.family_annual_income?.toString() || '',
           income_certificate_no: cap.income_certificate_no || '',
           income_issuing_authority: cap.income_issuing_authority || '',
           income_issue_date: cap.income_issue_date?.split('T')[0] || '',
-          
+
           domicile_certificate_no: cap.domicile_certificate_no || '',
           domicile_issuing_authority: cap.domicile_issuing_authority || '',
           domicile_issue_date: cap.domicile_issue_date?.split('T')[0] || '',
-          
+
           category: cap.caste_category || '',
           caste_certificate_no: cap.caste_certificate_no || '',
           caste_issuing_district: cap.caste_issuing_district || '',
           caste_issuing_authority: cap.caste_issuing_authority || '',
-          
+
           ssc_school: cap.ssc_school_name || '',
           hsc_college: cap.hsc_college_name || '',
           current_course: cap.course_name || '',
-        }));
+        };
+
+        if (JSON.stringify(newValues) !== JSON.stringify(formik.values)) {
+          formik.setValues(newValues);
+        }
       }
     } catch (error) {
       console.error('Error loading verified data:', error);
@@ -149,7 +155,7 @@ const PersonalDetailsForm = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [router, formik]);
+  }, [router, formik]); // ✅ Dependency updated
 
   useEffect(() => {
     loadVerifiedData();
