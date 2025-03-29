@@ -2,7 +2,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
 const PersonalDetailsForm = () => {
   const router = useRouter();
@@ -68,7 +68,6 @@ const PersonalDetailsForm = () => {
     
     onSubmit: async (values) => {
       try {
-        // Get the stored verification data
         const storedData = localStorage.getItem('verifiedData');
         if (!storedData) {
           toast.error('Verification data not found. Please verify your details first.');
@@ -78,7 +77,6 @@ const PersonalDetailsForm = () => {
 
         const { aadhar, cap } = JSON.parse(storedData);
 
-        // Combine the form values with verification data
         const submitData = {
           ...values,
           aadhar_no: aadhar.aadhar_no,
@@ -87,9 +85,7 @@ const PersonalDetailsForm = () => {
 
         const response = await fetch('/api/personal-details', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(submitData),
         });
 
@@ -101,15 +97,14 @@ const PersonalDetailsForm = () => {
 
         toast.success('Personal details saved successfully!');
         router.push('/family-details');
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Error saving personal details:', error);
-        toast.error(error.message || 'Failed to save personal details. Please try again.');
+        toast.error(error instanceof Error ? error.message : 'Failed to save personal details. Please try again.');
       }
     },
   });
 
-  // Load verified data from localStorage on component mount
-  useEffect(() => {
+  const loadVerifiedData = useCallback(() => {
     try {
       if (typeof window !== 'undefined') {
         const storedData = localStorage.getItem('verifiedData');
@@ -121,16 +116,13 @@ const PersonalDetailsForm = () => {
 
         const { aadhar, cap } = JSON.parse(storedData);
 
-        // Pre-fill form with Aadhaar and CAP data
-        formik.setValues({
-          ...formik.values,
-          // Personal Details from Aadhaar
+        formik.setValues((prevValues) => ({
+          ...prevValues,
           name: aadhar.name || '',
-          dob: aadhar.dob?.split('T')[0] || '', // Format date to YYYY-MM-DD
+          dob: aadhar.dob?.split('T')[0] || '',
           gender: aadhar.gender?.toLowerCase() || '',
           address: aadhar.address || '',
           
-          // Details from CAP
           annual_income: cap.family_annual_income?.toString() || '',
           income_certificate_no: cap.income_certificate_no || '',
           income_issuing_authority: cap.income_issuing_authority || '',
@@ -148,7 +140,7 @@ const PersonalDetailsForm = () => {
           ssc_school: cap.ssc_school_name || '',
           hsc_college: cap.hsc_college_name || '',
           current_course: cap.course_name || '',
-        });
+        }));
       }
     } catch (error) {
       console.error('Error loading verified data:', error);
@@ -157,7 +149,11 @@ const PersonalDetailsForm = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [router, formik]);
+
+  useEffect(() => {
+    loadVerifiedData();
+  }, [loadVerifiedData]);
 
   if (isLoading) {
     return (
