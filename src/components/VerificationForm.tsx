@@ -40,9 +40,10 @@ const VerificationForm = () => {
         
         toast.success('Verification successful!');
         router.push('/personal-details');
-      } catch (error) {
+      } catch {
         toast.error('Verification failed. Please check your details.');
       }
+      
     },
   });
 
